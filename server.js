@@ -45,100 +45,16 @@ app.get('/', (req, res) => {
 
 // Middleware de conexión a MongoDB para todas las rutas de películas
 app.use('/peliculas', connectToMongoDB, async (req, res, next) => {
-  // Asegúrate de desconectar después de enviar la respuesta
   res.on('finish', async () => {
     await disconnectFromMongoDB(req, res, next)
   })
   next()
 })
 
-// Obtener todas las películas
-app.get('/peliculas', async (req, res) => {
-  try {
-    const { genero } = req.query
-    const peliculas = genero
-      ? await req.db
-          .find({ genre: { $regex: genero, $options: 'i' } })
-          .toArray()
-      : await req.db.find().toArray()
-    res.json(peliculas)
-  } catch (error) {
-    res.status(500).send('Error al obtener las películas')
-  }
-})
+const peliculasRouter = require('./src/routes/peliculasRoutes')
 
-// Mostrar una peli por id
-app.get('/peliculas/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    const objectId = new ObjectId(id)
-    const pelicula = await req.db.findOne({ _id: objectId })
-    res.json(pelicula)
-  } catch (error) {
-    res.status(500).send('Error al obtener la película')
-  }
-})
-
-// Agregar una peli
-app.post('/peliculas', async (req, res) => {
-  const resultado = validarPeli(req.body)
-  if (!resultado.success) return res.status(400).json(resultado.error.message)
-
-  try {
-    await req.db.insertOne(resultado.data)
-    res.status(201).json(resultado.data)
-  } catch (error) {
-    res.status(500).send('Error al agregar la película')
-  }
-})
-
-// Borrar una peli por id
-app.delete('/peliculas/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    const objectId = new ObjectId(id)
-    const { deletedCount } = await req.db.deleteOne({ _id: objectId })
-    res
-      .status(deletedCount > 0 ? 200 : 404)
-      .json(
-        deletedCount > 0
-          ? { message: 'Peli borrada con éxito' }
-          : { message: 'Peli no encontrada para borrar' }
-      )
-  } catch (error) {
-    res.status(500).send('Error al borrar la película')
-  }
-})
-
-// Modificar/Actualizar una peli
-app.patch('/peliculas/:id', async (req, res) => {
-  const resultado = validarPeliParcialmente(req.body)
-
-  if (!resultado.success) return res.status(400).json(resultado.error.details)
-
-  const { id } = req.params
-  const objectId = new ObjectId(id)
-
-  try {
-    const updateResult = await req.db.findOneAndUpdate(
-      { _id: objectId },
-      { $set: resultado.data },
-      { returnDocument: 'after' }
-    )
-
-    if (!updateResult) {
-      res.status(404).json({ message: 'Peli no encontrada para actualizar' })
-      return
-    }
-
-    res.json({
-      message: 'Peli actualizada con éxito',
-      updatedMovie: updateResult,
-    })
-  } catch (error) {
-    res.status(500).send('Error al actualizar la película')
-  }
-})
+// Usa el router de películas
+app.use('/peliculas', peliculasRouter)
 
 // Inicializamos el servidor
 app.listen(port, () => {
