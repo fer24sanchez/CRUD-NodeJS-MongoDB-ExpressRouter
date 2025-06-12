@@ -1,0 +1,19 @@
+{
+  "name": "nodejs-mongodb",
+  "version": "1.0.0",
+  "description": "Este repositorio contiene una API desarrollada con Express y MongoDB que permite gestionar una colección de películas. La API permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre las películas almacenadas en una base de datos MongoDB.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.17.0",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
+  }
+}
